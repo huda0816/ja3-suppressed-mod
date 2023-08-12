@@ -392,14 +392,18 @@ function SuppressionMeter:CalculateSuppressionResistance(target, test, not_armor
     return Min(Max(resistance, 0), 100)
 end
 
-function SuppressionMeter:ApplySuppression(obj, added_supp)
+function SuppressionMeter:ApplySuppression(obj, added_supp, attacker)
     obj.suppression_resistance = obj.suppression_resistance or self:CalculateSuppressionResistance(obj) or 0
 
     local suppression_resistance = obj.suppression_resistance
 
-    -- add 50% suppression resistance if using this perk
+    -- add 50% suppression resistance if using this combat action
     if obj:HasStatusEffect("Protected") then
-        suppression_resistance = suppression_resistance + 50
+        suppression_resistance = suppression_resistance + 40
+    end
+
+    if self:CheckIfSameSide(obj, attacker) then
+        suppression_resistance = suppression_resistance + 40
     end
 
     -- add 20% suppression resistance if not in combat as he cannot fear what he cannot see
@@ -407,7 +411,7 @@ function SuppressionMeter:ApplySuppression(obj, added_supp)
         suppression_resistance = suppression_resistance + 20
     end
 
-    added_supp = (added_supp * (100 - suppression_resistance)) / 100
+    added_supp = MulDivRound(added_supp, 100 - suppression_resistance, 100)
 
     added_supp = (added_supp * self.SuppressionMultiplier) / 100
 
@@ -417,17 +421,15 @@ function SuppressionMeter:ApplySuppression(obj, added_supp)
         added_supp = (added_supp * self.SuppressionAiMultiplier) / 100
     end
 
-    local rounded_suppression = Max(0, round(obj:RandRange(added_supp * 0.9, added_supp * 1.1), 1))
+    local rounded_suppression = Max(0, added_supp)
 
-    return (obj.suppression_meter or 0) + rounded_suppression, rounded_suppression
+    return (obj.suppression_meter or 0) + rounded_suppression, rounded_suppression, suppression_resistance
 end
 
-function SuppressionMeter:LogToSnype(target, attacker, added_supp, near_miss, is_target, bruttosupp)
+function SuppressionMeter:LogToSnype(target, attacker, added_supp, near_miss, is_target, bruttosupp, suppression_resistance)
     local targetName = target:GetDisplayName()
 
     local attackerName = attacker:GetDisplayName()
-
-    local resistance = target.suppression_resistance
 
     local suppression = (target.suppression_meter or 0) + added_supp
 
@@ -449,7 +451,7 @@ function SuppressionMeter:LogToSnype(target, attacker, added_supp, near_miss, is
     CombatLog("debug", T({
         Untranslated("<em><target></em> had <em><resistance>%</em> suppression resistance and was <hit>"),
         target = targetName,
-        resistance = resistance,
+        resistance = suppression_resistance,
         hit = hit
     }))
     if not is_target then
@@ -564,9 +566,9 @@ function SuppressionMeter:CalculateSuppression(obj, action, results, attack_args
         suppression = self:CalculateHeavyWeaponSuppression(weapon, obj, action, results, attack_args, is_near_miss)
     end
 
-    local new_suppression, added_suppression = self:ApplySuppression(obj, suppression, is_near_miss, is_target)
+    local new_suppression, added_suppression, suppression_resistance = self:ApplySuppression(obj, suppression, attack_args.obj)
 
-    self:LogToSnype(obj, attack_args.obj, added_suppression, is_near_miss, is_target, suppression)
+    self:LogToSnype(obj, attack_args.obj, added_suppression, is_near_miss, is_target, suppression, suppression_resistance)
 
     return new_suppression
 end
@@ -589,8 +591,6 @@ function SuppressionMeter:CalculateExplosivesSuppression(weapon, obj, action, re
 end
 
 function SuppressionMeter:CalculateFireArmsSuppression(weapon, obj, action, results, attack_args, is_near_miss)
-    
-    
     local max_range = weapon.WeaponRange * 1000
 
     local target_dist = obj:GetDist(attack_args.obj)
@@ -694,7 +694,7 @@ function SuppressionMeter:CalculateMortarSuppression(attacker, target, hit_descr
         suppression = suppression * 2 / 3
     end
 
-    local new_suppression, added_suppression = self:ApplySuppression(target, suppression, false, false)
+    local new_suppression, added_suppression = self:ApplySuppression(target, suppression, attacker)
 
     self:LogToSnype(target, attacker, added_suppression, false, false)
 
@@ -718,7 +718,6 @@ function SuppressionMeter:DoSuppression(action, results, attack_args)
 
     if close_units and #close_units > 0 then
         for _, unit in ipairs(close_units) do
-
             local is_near_miss = false
             local is_hit = true
 
@@ -758,16 +757,43 @@ function SuppressionMeter:GetCloseUnits(target, attacker)
     return close_units
 end
 
+function SuppressionMeter:CheckIfSameSide(attacker, target)
+    if attacker.team.player_team and target.team.player_team then
+        return true
+    end
+
+    if attacker.team.player_enemy and target.team.player_enemy then
+        return true
+    end
+
+    if attacker.team.player_ally and target.team.player_ally then
+        return true
+    end
+
+    if attacker.team.player_ally and target.team.player_team then
+        return true
+    end
+
+    if attacker.team.player_team and target.team.player_ally then
+        return true
+    end
+
+    return false
+end
+
 function SuppressionMeter:IsNearMiss(results, attack_args, target)
-    
     local attacker = attack_args.obj
 
     if IsValidTarget(target) then
-
         local slab_size = const.SlabSizeX
         local dist_stuckpos_to_target = 100 * slab_size
         local dist_stuckpos_to_attacker = 0
         local dist_target_to_attacker = attacker:GetDist(target)
+
+        if self:CheckIfSameSide(attacker, target) and dist_target_to_attacker <= slab_size * 3 then
+            return false
+        end
+
         for _, shot in ipairs(results.shots) do
             local new_dist_to_target = 1000 * slab_size
 
@@ -784,7 +810,6 @@ function SuppressionMeter:IsNearMiss(results, attack_args, target)
             end
 
             if new_dist_to_target < dist_stuckpos_to_target then
-
                 dist_stuckpos_to_target = new_dist_to_target
 
                 if dist_stuckpos_to_target <= slab_size * 1.5 then
@@ -805,7 +830,7 @@ function SuppressionMeter:IsNearMiss(results, attack_args, target)
 
                 local travel_distance = dist_stuckpos_to_target + dist_target_to_attacker
 
-                if travel_distance <= dist_stuckpos_to_attacker + slab_size then
+                if travel_distance <= dist_stuckpos_to_attacker + MulDivRound(slab_size, 75, 100) then
                     return true
                 end
             end
