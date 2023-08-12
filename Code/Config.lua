@@ -31,7 +31,7 @@ SUPPWeaponSuppressionValues = {
     RemoteTNT = 28,
     TimedTNT = 28,
     Warhead_Frag = 36,
-    MortarShell_HE = 40,
+    MortarShell_HE = 44,
     _40mmFragGrenade = 34,
     _40mmFlashbangGrenade = 5,
 }

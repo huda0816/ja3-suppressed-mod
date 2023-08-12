@@ -29,4 +29,4 @@ This project is not licensed. Feel free to do whatever you want with the code. I
 
 ## Acknowledgments
 
-Thanks to everyone on the Jagged Alliance modding discord for their help. Especially the one and only audaki_ra
+Thanks to everyone on the JA3 Modding Discord. Special to audaki_ra and Tobias for the help.
