@@ -15,7 +15,7 @@ function OnMsg.ApplyModOptions(mod_id)
 end
 
 -- Zulib or slider mod from audaki_ra has to be active for that
-if Zulib.setupModSlider then
+if Zulib and Zulib.setupModSlider then
 	Zulib.setupModSlider({
 	  modId = CurrentModId,
 	  optionId = 'suppressed_suppression_ai_multiplier',

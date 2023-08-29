@@ -16,10 +16,6 @@ function OnMsg.TurnStart(team)
     SuppressionMeter:ResetTeamSuppression(team)
 end
 
--- function OnMsg.TurnEnded(team)
---     g_keepbomb = table.copy(g_Units)
--- end
-
 function OnMsg.CombatEnd()
     SuppressionMeter:RemoveSuppression()
 end
@@ -476,10 +472,6 @@ function SuppressionMeter:LogToSnype(target, attacker, added_supp, near_miss, is
     }))
 end
 
-function SuppressionMeter:RemoveSuppression(removed_supp)
-    return current_suppression - removed_supp
-end
-
 function SuppressionMeter:ApplySuppressionStatus(target)
     target.old_suppression_level = target.suppression_level or 0
 
@@ -550,8 +542,6 @@ end
 
 function SuppressionMeter:CalculateSuppression(obj, action, results, attack_args, is_near_miss, is_target)
     local weapon = attack_args.weapon
-
-    g_weapon = weapon
 
     local suppression = 0
 
