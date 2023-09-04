@@ -14,7 +14,7 @@ DefineClass.UnderHeavyFire = {
 				
 				local function exec(self, unit)
 				if IsKindOf(unit, "Unit") then
-					unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.APssr)
+					unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 				end
 				local id = GetCharacterEffectId(self)
@@ -30,7 +30,7 @@ DefineClass.UnderHeavyFire = {
 			end,
 			HandlerCode = function (self, unit)
 				if IsKindOf(unit, "Unit") then
-					unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.APssr)
+					unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 			end,
 			param_bindings = false,
