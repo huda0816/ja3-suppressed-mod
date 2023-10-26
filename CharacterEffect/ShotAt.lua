@@ -6,42 +6,41 @@ DefineClass.ShotAt = {
 
 	object_class = "StatusEffect",
 	msg_reactions = {
-		PlaceObj('MsgReaction', {
+		PlaceObj('MsgActorReaction', {
+			ActorParam = "unit",
 			Event = "UnitBeginTurn",
 			Handler = function (self, unit)
-				local reaction_idx = table.find(self.msg_reactions or empty_table, "Event", "UnitBeginTurn")
-				if not reaction_idx then return end
 				
 				local function exec(self, unit)
 				if IsKindOf(unit, "Unit") then
-					unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.AP)
+					unit:ConsumeAP(-self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 				end
-				local id = GetCharacterEffectId(self)
 				
-				if id then
-					if IsKindOf(unit, "StatusEffectObject") and unit:HasStatusEffect(id) then
-						exec(self, unit)
-					end
-				else
+				if not IsKindOf(self, "MsgReactionsPreset") then return end
+				
+				local reaction_def = (self.msg_reactions or empty_table)[1]
+				if not reaction_def or reaction_def.Event ~= "UnitBeginTurn" then return end
+				
+				if not IsKindOf(self, "MsgActorReactionsPreset") then
 					exec(self, unit)
 				end
 				
+				if self:VerifyReaction("UnitBeginTurn", reaction_def, unit, unit) then
+					exec(self, unit)
+				end
 			end,
 			HandlerCode = function (self, unit)
 				if IsKindOf(unit, "Unit") then
-					unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.AP)
+					unit:ConsumeAP(-self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 			end,
-			param_bindings = false,
 		}),
 	},
-	Modifiers = {},
-	DisplayName = T(510464695152, --[[ModItemCharacterEffectCompositeDef ShotAt DisplayName]] "Shot At"),
-	Description = T(792330021722, --[[ModItemCharacterEffectCompositeDef ShotAt Description]] "Penalty of <color EmStyle><ap_loss> is applied to your maximum AP</color> for this turn."),
-	AddEffectText = T(412740953082, --[[ModItemCharacterEffectCompositeDef ShotAt AddEffectText]] "<color EmStyle><DisplayName></color> is shot at"),
+	DisplayName = T(961066146746, --[[ModItemCharacterEffectCompositeDef ShotAt DisplayName]] "Shot At"),
+	Description = T(409582181554, --[[ModItemCharacterEffectCompositeDef ShotAt Description]] "Penalty of <color EmStyle><ap_loss> is applied to your maximum AP</color> for this turn."),
+	AddEffectText = T(267598568608, --[[ModItemCharacterEffectCompositeDef ShotAt AddEffectText]] "<color EmStyle><DisplayName></color> is suppressed"),
 	type = "Debuff",
-	lifetime = "Until End of Turn",
 	Icon = "Mod/ANKmKG/Icons/suppression1.png",
 	RemoveOnEndCombat = true,
 	Shown = true,

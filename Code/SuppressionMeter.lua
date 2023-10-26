@@ -1,5 +1,3 @@
-g_target = {}
-
 function OnMsg.DamageDone(attacker, target, dmg, hit_descr)
     local weapon = attacker:GetActiveWeapons()
 
@@ -21,13 +19,11 @@ function OnMsg.CombatEnd()
 end
 
 function OnMsg.InterruptAttackEnd()
-    g_savedow = g_CurrentAttackActions[1]
-
     SuppressionMeter:DoSuppression(g_CurrentAttackActions[1].action, g_CurrentAttackActions[1].results,
         g_CurrentAttackActions[1].attack_args)
 end
 
-function OnMsg.OnAttacked(attacker, action, target, results, attack_args)
+function OnMsg.OnAttack(attacker, action, target, results, attack_args)
     SuppressionMeter:DoSuppression(action, results, attack_args)
 end
 
@@ -38,7 +34,7 @@ function OnMsg.StatusEffectAdded(unit, id)
 end
 
 DefineClass.SuppressionMeter = {
-    MaxSuppressionRemoved = const.suppression_max_removed or 1000,
+    MaxSuppressionRemoved = const.suppression_max_removed or 100,
     SuppressionMultiplier = const.suppression_multiplier or 100,
     SuppressionAiMultiplier = SuppressedGetModOptions("suppression_ai_multiplier", 100, "multiplier"),
     SuppressionPlayerMultiplier = SuppressedGetModOptions("suppression_player_multiplier", 100, "multiplier"),
@@ -65,6 +61,8 @@ function SuppressionMeter:HandleVanillaSuppression(unit)
     unit.suppression_meter = self:ApplySuppression(unit, self.VanillaSuppressionValue)
 
     self:ApplySuppressionStatus(unit)
+
+    self:HandleSuppression(unit)
 end
 
 function SuppressionMeter:InitSuppression()
@@ -104,16 +102,22 @@ function SuppressionMeter:ResetTeamSuppression(team, forced)
                 self:SpecialAIRules(unit)
             end
 
-            if forced then
-                unit.suppression_meter = 0
+            if unit:HasStatusEffect("Suppressed") then
+                unit:RemoveStatusEffect("Suppressed")
             end
-
-            unit.suppression_meter = Max((unit.suppression_meter or 0) - self.MaxSuppressionRemoved, 0)
 
             unit.suppression_resistance = self:CalculateSuppressionResistance(unit)
 
-            if unit:HasStatusEffect("Suppressed") then
-                unit:RemoveStatusEffect("Suppressed")
+            if forced then
+                unit.suppression_meter = 0
+            else
+                unit.suppression_meter = Max((unit.suppression_meter or 0) - (unit.suppression_resistance * 3), 0)
+            end
+
+            self:ApplySuppressionStatus(unit)
+
+            if (unit.suppression_meter > 0) then
+                self:HandleSuppression(unit)
             end
         end
     end
@@ -245,8 +249,10 @@ function SuppressionMeter:SpecialAIRules(target)
 
     local total_ap = target.ActionPoints + target.free_move_ap
 
+    target.suppression_level = target.suppression_level or 0
+
     --remove all ap if there are not enough ap to do something which makes sense
-    if target:IsThreatened(nil, 'overwatch') and target.suppression_level >= 4 then
+    if (target:IsThreatened(nil, 'overwatch') and target.suppression_level >= 4) or target.suppression_level > 4 then
         target:SetActionCommand("ChangeStance", nil, nil, "Prone")
         target:ConsumeAP(target.free_move_ap)
         target:ConsumeAP(target.ap)
@@ -422,7 +428,8 @@ function SuppressionMeter:ApplySuppression(obj, added_supp, attacker)
     return (obj.suppression_meter or 0) + rounded_suppression, rounded_suppression, suppression_resistance
 end
 
-function SuppressionMeter:LogToSnype(target, attacker, added_supp, near_miss, is_target, bruttosupp, suppression_resistance)
+function SuppressionMeter:LogToSnype(target, attacker, added_supp, near_miss, is_target, bruttosupp,
+                                     suppression_resistance)
     local targetName = target:GetDisplayName()
 
     local attackerName = attacker:GetDisplayName()
@@ -536,8 +543,6 @@ function SuppressionMeter:ApplySuppressionStatus(target)
         target:RemoveStatusEffect("UnderHeavyFire")
         target:RemoveStatusEffect("ShotAt")
     end
-
-    self:HandleSuppression(target)
 end
 
 function SuppressionMeter:CalculateSuppression(obj, action, results, attack_args, is_near_miss, is_target)
@@ -556,7 +561,8 @@ function SuppressionMeter:CalculateSuppression(obj, action, results, attack_args
         suppression = self:CalculateHeavyWeaponSuppression(weapon, obj, action, results, attack_args, is_near_miss)
     end
 
-    local new_suppression, added_suppression, suppression_resistance = self:ApplySuppression(obj, suppression, attack_args.obj)
+    local new_suppression, added_suppression, suppression_resistance = self:ApplySuppression(obj, suppression,
+        attack_args.obj)
 
     self:LogToSnype(obj, attack_args.obj, added_suppression, is_near_miss, is_target, suppression, suppression_resistance)
 
@@ -587,14 +593,7 @@ function SuppressionMeter:CalculateFireArmsSuppression(weapon, obj, action, resu
 
     local distance_percent = target_dist / (max_range / 100)
 
-    local rangeModifier = 100;
-
-    --TODO make this exponential
-    if (distance_percent > 300) then
-        return 0
-    elseif (distance_percent > 100) then
-        rangeModifier = 100 - DivRound(distance_percent - 100, 2)
-    end
+    local rangeModifier = self:GetEffectiveSuppression(distance_percent)
 
     local weapon_suppression_value = weapon.SuppressionValue or SUPPWeaponSuppressionValues[weapon.class] or
         SUPPWeaponSuppressionValues[weapon.object_class] or 0
@@ -691,6 +690,8 @@ function SuppressionMeter:CalculateMortarSuppression(attacker, target, hit_descr
     target.suppression_meter = new_suppression
 
     self:ApplySuppressionStatus(target)
+
+    self:HandleSuppression(target)
 end
 
 function SuppressionMeter:DoSuppression(action, results, attack_args)
@@ -704,7 +705,9 @@ function SuppressionMeter:DoSuppression(action, results, attack_args)
 
     local close_units = self:GetCloseUnits(target, attacker)
 
-    table.insert(close_units, target)
+    if IsKindOf(target, "Unit") then
+        table.insert(close_units, target)
+    end
 
     if close_units and #close_units > 0 then
         for _, unit in ipairs(close_units) do
@@ -723,6 +726,8 @@ function SuppressionMeter:DoSuppression(action, results, attack_args)
                     is_near_miss, false)
 
                 self:ApplySuppressionStatus(unit)
+
+                self:HandleSuppression(unit)
             end
         end
     end
@@ -748,6 +753,11 @@ function SuppressionMeter:GetCloseUnits(target, attacker)
 end
 
 function SuppressionMeter:CheckIfSameSide(attacker, target)
+
+    if not target or not attacker then
+        return false
+    end
+
     if attacker.team.player_team and target.team.player_team then
         return true
     end
@@ -857,3 +867,48 @@ function SuppressionMeter:CalcResistanceForAllUnits(global, merc, armor)
         end
     end
 end
+
+function SuppressionMeter:GetEffectiveSuppression(distance)
+    local decayRate = 0.004
+    local initial = 150
+
+    local result = initial
+
+    for d = 1, distance do
+        result = result * (1 - decayRate)
+    end
+
+    return result
+end
+
+-- function exponentialDecay(initial, decayRate, distance)
+--     if decayRate < 0 or decayRate >= 1 then
+--         return "Invalid decay rate. It should be in the range [0, 1)."
+--     end
+
+--     local result = initial
+--     local decayValues = { result }
+
+--     for d = 1, distance do
+--         result = result * (1 - decayRate)
+--         table.insert(decayValues, result)
+--     end
+
+--     return decayValues
+-- end
+
+-- function testDecay()
+--     -- Example usage:
+--     local initial = 100    -- Initial value
+--     local decayRate = 0.001 -- Decay rate (5% decay per unit of distance)
+--     local distance = 100   -- Distance over which to calculate the decayed values
+
+--     local decayedValues = exponentialDecay(initial, decayRate, distance)
+
+--     -- Display the values from 0 to 100 distance
+--     print("Distance | Decay Value")
+--     print("---------|-------------")
+--     for d = 0, distance do
+--         print(string.format("%8d | %11.2f", d, decayedValues[d + 1]))
+--     end
+-- end

@@ -4,48 +4,48 @@ PlaceObj('ModItemCharacterEffectCompositeDef', {
 	'Parameters', {
 		PlaceObj('PresetParamNumber', {
 			'Name', "ap_loss",
-			'Value', 2,
+			'Value', -2,
 			'Tag', "<ap_loss>",
 		}),
 	},
 	'object_class', "StatusEffect",
 	'msg_reactions', {
-		PlaceObj('MsgReaction', {
+		PlaceObj('MsgActorReaction', {
+			ActorParam = "unit",
 			Event = "UnitBeginTurn",
 			Handler = function (self, unit)
-				local reaction_idx = table.find(self.msg_reactions or empty_table, "Event", "UnitBeginTurn")
-				if not reaction_idx then return end
 				
 				local function exec(self, unit)
 				if IsKindOf(unit, "Unit") then
-					unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.AP)
+					unit:ConsumeAP(-self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 				end
-				local id = GetCharacterEffectId(self)
 				
-				if id then
-					if IsKindOf(unit, "StatusEffectObject") and unit:HasStatusEffect(id) then
-						exec(self, unit)
-					end
-				else
+				if not IsKindOf(self, "MsgReactionsPreset") then return end
+				
+				local reaction_def = (self.msg_reactions or empty_table)[1]
+				if not reaction_def or reaction_def.Event ~= "UnitBeginTurn" then return end
+				
+				if not IsKindOf(self, "MsgActorReactionsPreset") then
 					exec(self, unit)
 				end
 				
+				if self:VerifyReaction("UnitBeginTurn", reaction_def, unit, unit) then
+					exec(self, unit)
+				end
 			end,
 			HandlerCode = function (self, unit)
 				if IsKindOf(unit, "Unit") then
-					unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.AP)
+					unit:ConsumeAP(-self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 			end,
 			param_bindings = false,
 		}),
 	},
-	'Modifiers', {},
-	'DisplayName', T(510464695152, --[[ModItemCharacterEffectCompositeDef ShotAt DisplayName]] "Shot At"),
-	'Description', T(792330021722, --[[ModItemCharacterEffectCompositeDef ShotAt Description]] "Penalty of <color EmStyle><ap_loss> is applied to your maximum AP</color> for this turn."),
-	'AddEffectText', T(412740953082, --[[ModItemCharacterEffectCompositeDef ShotAt AddEffectText]] "<color EmStyle><DisplayName></color> is shot at"),
+	'DisplayName', T(961066146746, --[[ModItemCharacterEffectCompositeDef ShotAt DisplayName]] "Shot At"),
+	'Description', T(409582181554, --[[ModItemCharacterEffectCompositeDef ShotAt Description]] "Penalty of <color EmStyle><ap_loss> is applied to your maximum AP</color> for this turn."),
+	'AddEffectText', T(267598568608, --[[ModItemCharacterEffectCompositeDef ShotAt AddEffectText]] "<color EmStyle><DisplayName></color> is suppressed"),
 	'type', "Debuff",
-	'lifetime', "Until End of Turn",
 	'Icon', "Mod/ANKmKG/Icons/suppression1.png",
 	'RemoveOnEndCombat', true,
 	'Shown', true,
@@ -56,47 +56,48 @@ PlaceObj('ModItemCharacterEffectCompositeDef', {
 	'Parameters', {
 		PlaceObj('PresetParamNumber', {
 			'Name', "ap_loss",
-			'Value', 4,
+			'Value', -4,
 			'Tag', "<ap_loss>",
 		}),
 	},
 	'object_class', "StatusEffect",
 	'msg_reactions', {
-		PlaceObj('MsgReaction', {
+		PlaceObj('MsgActorReaction', {
+			ActorParam = "unit",
 			Event = "UnitBeginTurn",
 			Handler = function (self, unit)
-				local reaction_idx = table.find(self.msg_reactions or empty_table, "Event", "UnitBeginTurn")
-				if not reaction_idx then return end
 				
 				local function exec(self, unit)
 				if IsKindOf(unit, "Unit") then
-				    unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.AP)
+					unit:ConsumeAP(-self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 				end
-				local id = GetCharacterEffectId(self)
 				
-				if id then
-					if IsKindOf(unit, "StatusEffectObject") and unit:HasStatusEffect(id) then
-						exec(self, unit)
-					end
-				else
+				if not IsKindOf(self, "MsgReactionsPreset") then return end
+				
+				local reaction_def = (self.msg_reactions or empty_table)[1]
+				if not reaction_def or reaction_def.Event ~= "UnitBeginTurn" then return end
+				
+				if not IsKindOf(self, "MsgActorReactionsPreset") then
 					exec(self, unit)
 				end
 				
+				if self:VerifyReaction("UnitBeginTurn", reaction_def, unit, unit) then
+					exec(self, unit)
+				end
 			end,
 			HandlerCode = function (self, unit)
 				if IsKindOf(unit, "Unit") then
-				    unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.AP)
+					unit:ConsumeAP(-self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 			end,
 			param_bindings = false,
 		}),
 	},
-	'DisplayName', T(313402185495, --[[ModItemCharacterEffectCompositeDef UnderFire DisplayName]] "Under Fire"),
-	'Description', T(337536955376, --[[ModItemCharacterEffectCompositeDef UnderFire Description]] "Penalty of <color EmStyle><ap_loss> is applied to your maximum AP</color> for this turn."),
-	'AddEffectText', T(387783458681, --[[ModItemCharacterEffectCompositeDef UnderFire AddEffectText]] "<color EmStyle><DisplayName></color> is under fire"),
+	'DisplayName', T(989455125648, --[[ModItemCharacterEffectCompositeDef UnderFire DisplayName]] "Under Fire"),
+	'Description', T(390089603814, --[[ModItemCharacterEffectCompositeDef UnderFire Description]] "Penalty of <color EmStyle><ap_loss> is applied to your maximum AP</color> for this turn."),
+	'AddEffectText', T(780311442123, --[[ModItemCharacterEffectCompositeDef UnderFire AddEffectText]] "<color EmStyle><DisplayName></color> is suppressed"),
 	'type', "Debuff",
-	'lifetime', "Until End of Turn",
 	'Icon', "Mod/ANKmKG/Icons/suppression2.png",
 	'RemoveOnEndCombat', true,
 	'Shown', true,
@@ -107,47 +108,48 @@ PlaceObj('ModItemCharacterEffectCompositeDef', {
 	'Parameters', {
 		PlaceObj('PresetParamNumber', {
 			'Name', "ap_loss",
-			'Value', 6,
+			'Value', -6,
 			'Tag', "<ap_loss>",
 		}),
 	},
 	'object_class', "StatusEffect",
 	'msg_reactions', {
-		PlaceObj('MsgReaction', {
+		PlaceObj('MsgActorReaction', {
+			ActorParam = "unit",
 			Event = "UnitBeginTurn",
 			Handler = function (self, unit)
-				local reaction_idx = table.find(self.msg_reactions or empty_table, "Event", "UnitBeginTurn")
-				if not reaction_idx then return end
 				
 				local function exec(self, unit)
 				if IsKindOf(unit, "Unit") then
-					unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.AP)
+					unit:ConsumeAP(-self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 				end
-				local id = GetCharacterEffectId(self)
 				
-				if id then
-					if IsKindOf(unit, "StatusEffectObject") and unit:HasStatusEffect(id) then
-						exec(self, unit)
-					end
-				else
+				if not IsKindOf(self, "MsgReactionsPreset") then return end
+				
+				local reaction_def = (self.msg_reactions or empty_table)[1]
+				if not reaction_def or reaction_def.Event ~= "UnitBeginTurn" then return end
+				
+				if not IsKindOf(self, "MsgActorReactionsPreset") then
 					exec(self, unit)
 				end
 				
+				if self:VerifyReaction("UnitBeginTurn", reaction_def, unit, unit) then
+					exec(self, unit)
+				end
 			end,
 			HandlerCode = function (self, unit)
 				if IsKindOf(unit, "Unit") then
-					unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.AP)
+					unit:ConsumeAP(-self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 			end,
 			param_bindings = false,
 		}),
 	},
-	'DisplayName', T(822871836175, --[[ModItemCharacterEffectCompositeDef UnderHeavyFire DisplayName]] "Under Heavy Fire"),
-	'Description', T(334880395032, --[[ModItemCharacterEffectCompositeDef UnderHeavyFire Description]] "Penalty of <color EmStyle><ap_loss> is applied to your maximum AP</color> for this turn."),
-	'AddEffectText', T(919180442165, --[[ModItemCharacterEffectCompositeDef UnderHeavyFire AddEffectText]] "<color EmStyle><DisplayName></color> is under heavy fire"),
+	'DisplayName', T(240871056837, --[[ModItemCharacterEffectCompositeDef UnderHeavyFire DisplayName]] "Under Heavy Fire"),
+	'Description', T(484767204569, --[[ModItemCharacterEffectCompositeDef UnderHeavyFire Description]] "Penalty of <color EmStyle><ap_loss> is applied to your maximum AP</color> for this turn."),
+	'AddEffectText', T(668863159769, --[[ModItemCharacterEffectCompositeDef UnderHeavyFire AddEffectText]] "<color EmStyle><DisplayName></color> is suppressed"),
 	'type', "Debuff",
-	'lifetime', "Until End of Turn",
 	'Icon', "Mod/ANKmKG/Icons/suppression3.png",
 	'RemoveOnEndCombat', true,
 	'Shown', true,
@@ -158,47 +160,48 @@ PlaceObj('ModItemCharacterEffectCompositeDef', {
 	'Parameters', {
 		PlaceObj('PresetParamNumber', {
 			'Name', "ap_loss",
-			'Value', 8,
+			'Value', -8,
 			'Tag', "<ap_loss>",
 		}),
 	},
 	'object_class', "StatusEffect",
 	'msg_reactions', {
-		PlaceObj('MsgReaction', {
+		PlaceObj('MsgActorReaction', {
+			ActorParam = "unit",
 			Event = "UnitBeginTurn",
 			Handler = function (self, unit)
-				local reaction_idx = table.find(self.msg_reactions or empty_table, "Event", "UnitBeginTurn")
-				if not reaction_idx then return end
 				
 				local function exec(self, unit)
 				if IsKindOf(unit, "Unit") then
-					unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.AP)
+					unit:ConsumeAP(-self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 				end
-				local id = GetCharacterEffectId(self)
 				
-				if id then
-					if IsKindOf(unit, "StatusEffectObject") and unit:HasStatusEffect(id) then
-						exec(self, unit)
-					end
-				else
+				if not IsKindOf(self, "MsgReactionsPreset") then return end
+				
+				local reaction_def = (self.msg_reactions or empty_table)[1]
+				if not reaction_def or reaction_def.Event ~= "UnitBeginTurn" then return end
+				
+				if not IsKindOf(self, "MsgActorReactionsPreset") then
 					exec(self, unit)
 				end
 				
+				if self:VerifyReaction("UnitBeginTurn", reaction_def, unit, unit) then
+					exec(self, unit)
+				end
 			end,
 			HandlerCode = function (self, unit)
 				if IsKindOf(unit, "Unit") then
-					unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.AP)
+					unit:ConsumeAP(-self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 			end,
 			param_bindings = false,
 		}),
 	},
-	'DisplayName', T(785373036573, --[[ModItemCharacterEffectCompositeDef SuppressedCustom DisplayName]] "Suppressed"),
-	'Description', T(833916880502, --[[ModItemCharacterEffectCompositeDef SuppressedCustom Description]] "Penalty of <color EmStyle><ap_loss> is applied to your maximum AP</color> for this turn."),
-	'AddEffectText', T(969834413493, --[[ModItemCharacterEffectCompositeDef SuppressedCustom AddEffectText]] "<color EmStyle><DisplayName></color> is suppressed"),
+	'DisplayName', T(834366384495, --[[ModItemCharacterEffectCompositeDef SuppressedCustom DisplayName]] "Suppressed"),
+	'Description', T(373418870750, --[[ModItemCharacterEffectCompositeDef SuppressedCustom Description]] "Penalty of <color EmStyle><ap_loss> is applied to your maximum AP</color> for this turn."),
+	'AddEffectText', T(122925869251, --[[ModItemCharacterEffectCompositeDef SuppressedCustom AddEffectText]] "<color EmStyle><DisplayName></color> is suppressed"),
 	'type', "Debuff",
-	'lifetime', "Until End of Turn",
 	'Icon', "Mod/ANKmKG/Icons/suppression4.png",
 	'RemoveOnEndCombat', true,
 	'Shown', true,
@@ -209,47 +212,48 @@ PlaceObj('ModItemCharacterEffectCompositeDef', {
 	'Parameters', {
 		PlaceObj('PresetParamNumber', {
 			'Name', "ap_loss",
-			'Value', 10,
+			'Value', -10,
 			'Tag', "<ap_loss>",
 		}),
 	},
 	'object_class', "StatusEffect",
 	'msg_reactions', {
-		PlaceObj('MsgReaction', {
+		PlaceObj('MsgActorReaction', {
+			ActorParam = "unit",
 			Event = "UnitBeginTurn",
 			Handler = function (self, unit)
-				local reaction_idx = table.find(self.msg_reactions or empty_table, "Event", "UnitBeginTurn")
-				if not reaction_idx then return end
 				
 				local function exec(self, unit)
 				if IsKindOf(unit, "Unit") then
-					unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.AP)
+					unit:ConsumeAP(-self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 				end
-				local id = GetCharacterEffectId(self)
 				
-				if id then
-					if IsKindOf(unit, "StatusEffectObject") and unit:HasStatusEffect(id) then
-						exec(self, unit)
-					end
-				else
+				if not IsKindOf(self, "MsgReactionsPreset") then return end
+				
+				local reaction_def = (self.msg_reactions or empty_table)[1]
+				if not reaction_def or reaction_def.Event ~= "UnitBeginTurn" then return end
+				
+				if not IsKindOf(self, "MsgActorReactionsPreset") then
 					exec(self, unit)
 				end
 				
+				if self:VerifyReaction("UnitBeginTurn", reaction_def, unit, unit) then
+					exec(self, unit)
+				end
 			end,
 			HandlerCode = function (self, unit)
 				if IsKindOf(unit, "Unit") then
-					unit:ConsumeAP(self:ResolveValue("ap_loss") * const.Scale.AP)
+					unit:ConsumeAP(-self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 			end,
 			param_bindings = false,
 		}),
 	},
-	'DisplayName', T(705794185892, --[[ModItemCharacterEffectCompositeDef PinnedDown DisplayName]] "Pinned Down"),
-	'Description', T(626021581178, --[[ModItemCharacterEffectCompositeDef PinnedDown Description]] "Penalty of <color EmStyle><ap_loss> is applied to your maximum AP</color> for this turn."),
-	'AddEffectText', T(786631920648, --[[ModItemCharacterEffectCompositeDef PinnedDown AddEffectText]] "<color EmStyle><DisplayName></color> is suppressed"),
+	'DisplayName', T(181499975893, --[[ModItemCharacterEffectCompositeDef PinnedDown DisplayName]] "Pinned Down"),
+	'Description', T(259808645196, --[[ModItemCharacterEffectCompositeDef PinnedDown Description]] "Penalty of <color EmStyle><ap_loss> is applied to your maximum AP</color> for this turn."),
+	'AddEffectText', T(967306901333, --[[ModItemCharacterEffectCompositeDef PinnedDown AddEffectText]] "<color EmStyle><DisplayName></color> is suppressed"),
 	'type', "Debuff",
-	'lifetime', "Until End of Turn",
 	'Icon', "Mod/ANKmKG/Icons/suppression5.png",
 	'RemoveOnEndCombat', true,
 	'Shown', true,
@@ -265,20 +269,29 @@ PlaceObj('ModItemCharacterEffectCompositeDef', {
 	},
 	'object_class', "StatusEffect",
 	'msg_reactions', {
-		PlaceObj('MsgReaction', {
+		PlaceObj('MsgActorReaction', {
+			ActorParam = "obj",
 			Event = "StatusEffectAdded",
 			Handler = function (self, obj, id, stacks)
-				local reaction_idx = table.find(self.msg_reactions or empty_table, "Event", "StatusEffectAdded")
-				if not reaction_idx then return end
 				
 				local function exec(self, obj, id, stacks)
 				if IsKindOf(obj, "Unit") then
 					obj:ConsumeAP(-self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 				end
-				local _id = GetCharacterEffectId(self)
-				if _id == id then exec(self, obj, id, stacks) end
 				
+				if not IsKindOf(self, "MsgReactionsPreset") then return end
+				
+				local reaction_def = (self.msg_reactions or empty_table)[1]
+				if not reaction_def or reaction_def.Event ~= "StatusEffectAdded" then return end
+				
+				if not IsKindOf(self, "MsgActorReactionsPreset") then
+					exec(self, obj, id, stacks)
+				end
+				
+				if self:VerifyReaction("StatusEffectAdded", reaction_def, obj, obj, id, stacks) then
+					exec(self, obj, id, stacks)
+				end
 			end,
 			HandlerCode = function (self, obj, id, stacks)
 				if IsKindOf(obj, "Unit") then
@@ -287,27 +300,29 @@ PlaceObj('ModItemCharacterEffectCompositeDef', {
 			end,
 			param_bindings = false,
 		}),
-		PlaceObj('MsgReaction', {
+		PlaceObj('MsgActorReaction', {
+			ActorParam = "unit",
 			Event = "UnitBeginTurn",
 			Handler = function (self, unit)
-				local reaction_idx = table.find(self.msg_reactions or empty_table, "Event", "UnitBeginTurn")
-				if not reaction_idx then return end
 				
 				local function exec(self, unit)
 				if IsKindOf(unit, "Unit") then
 					unit:ConsumeAP(-self:ResolveValue("ap_loss") * const.Scale.AP)
 				end
 				end
-				local id = GetCharacterEffectId(self)
 				
-				if id then
-					if IsKindOf(unit, "StatusEffectObject") and unit:HasStatusEffect(id) then
-						exec(self, unit)
-					end
-				else
+				if not IsKindOf(self, "MsgReactionsPreset") then return end
+				
+				local reaction_def = (self.msg_reactions or empty_table)[2]
+				if not reaction_def or reaction_def.Event ~= "UnitBeginTurn" then return end
+				
+				if not IsKindOf(self, "MsgActorReactionsPreset") then
 					exec(self, unit)
 				end
 				
+				if self:VerifyReaction("UnitBeginTurn", reaction_def, unit, unit) then
+					exec(self, unit)
+				end
 			end,
 			HandlerCode = function (self, unit)
 				if IsKindOf(unit, "Unit") then
@@ -317,13 +332,26 @@ PlaceObj('ModItemCharacterEffectCompositeDef', {
 			param_bindings = false,
 		}),
 	},
-	'DisplayName', T(948417836927, --[[ModItemCharacterEffectCompositeDef Suppressed DisplayName]] "Suppressed"),
-	'Description', T(986879860923, --[[ModItemCharacterEffectCompositeDef Suppressed Description]] "Penalty of <color EmStyle><ap_loss> is applied to your maximum AP</color> for this turn. This character cannot <color EmStyle>Flank</color> enemies."),
-	'AddEffectText', T(435148747721, --[[ModItemCharacterEffectCompositeDef Suppressed AddEffectText]] "<color EmStyle><DisplayName></color> is suppressed"),
+	'DisplayName', T(497878015648, --[[ModItemCharacterEffectCompositeDef Suppressed DisplayName]] "Suppressed"),
+	'Description', T(594631976836, --[[ModItemCharacterEffectCompositeDef Suppressed Description]] "Penalty of <color EmStyle><ap_loss> is applied to your maximum AP</color> for this turn. This character cannot <color EmStyle>Flank</color> enemies."),
+	'AddEffectText', T(776408433487, --[[ModItemCharacterEffectCompositeDef Suppressed AddEffectText]] "<color EmStyle><DisplayName></color> is suppressed"),
 	'type', "Debuff",
 	'lifetime', "Until End of Turn",
 	'Icon', "UI/Hud/Status effects/suppressed",
 	'RemoveOnEndCombat', true,
+}),
+PlaceObj('ModItemCode', {
+	'name', "Config",
+	'CodeFileName', "Code/Config.lua",
+}),
+PlaceObj('ModItemCode', {
+	'name', "Options",
+	'comment', "Mod Options",
+	'CodeFileName', "Code/Options.lua",
+}),
+PlaceObj('ModItemCode', {
+	'name', "SuppressionMeter",
+	'CodeFileName', "Code/SuppressionMeter.lua",
 }),
 PlaceObj('ModItemConstDef', {
 	comment = "Is test mode active?",
@@ -411,19 +439,6 @@ PlaceObj('ModItemConstDef', {
 	comment = "Berserk Treshold",
 	id = "suppression_panic_treshold",
 	value = 120,
-}),
-PlaceObj('ModItemCode', {
-	'name', "Config",
-	'CodeFileName', "Code/Config.lua",
-}),
-PlaceObj('ModItemCode', {
-	'name', "Options",
-	'comment', "Mod Options",
-	'CodeFileName', "Code/Options.lua",
-}),
-PlaceObj('ModItemCode', {
-	'name', "SuppressionMeter",
-	'CodeFileName', "Code/SuppressionMeter.lua",
 }),
 PlaceObj('ModItemOptionNumber', {
 	'name', "suppressed_suppression_ai_multiplier",
