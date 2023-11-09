@@ -1,6 +1,10 @@
 function SuppressedGetModOptions(id, default, type)
 	id = "suppressed_" .. id
 
+	if not CurrentModOptions then
+		return default or 0
+	end
+
 	return CurrentModOptions[id] or const[id] or default or 0
 end
 
