@@ -35,7 +35,7 @@ end
 
 DefineClass.SuppressionMeter = {
     MaxSuppressionRemoved = const.suppression_max_removed or 100,
-    SuppressionMultiplier = const.suppression_multiplier or 100,
+    SuppressionMultiplier = SuppressedGetModOptions("suppression_multiplier", 100, "multiplier"),
     SuppressionAiMultiplier = SuppressedGetModOptions("suppression_ai_multiplier", 100, "multiplier"),
     SuppressionPlayerMultiplier = SuppressedGetModOptions("suppression_player_multiplier", 100, "multiplier"),
     SuppressionResistanceMultiplier = const.suppression_resitance_multiplier or 100,
@@ -54,7 +54,7 @@ function SuppressionMeter:UpdateProps(prop_name, value)
     local property_name = prop_name:gsub("suppressed", ""):gsub("_%l", string.upper):gsub("^%l", string.upper):gsub("_",
         "")
 
-    self[property_name] = value
+    self[property_name] = tonumber(value)
 end
 
 function SuppressionMeter:HandleVanillaSuppression(unit)
@@ -111,7 +111,7 @@ function SuppressionMeter:ResetTeamSuppression(team, forced)
             if forced then
                 unit.suppression_meter = 0
             else
-                unit.suppression_meter = Max((unit.suppression_meter or 0) - (unit.suppression_resistance * 3), 0)
+                unit.suppression_meter = Min(Max((unit.suppression_meter or 0) - Max( 10,(unit.suppression_resistance * 3)), 0), 200)
             end
 
             self:ApplySuppressionStatus(unit)
@@ -382,6 +382,7 @@ function SuppressionMeter:CalculateSuppressionResistance(target, test, not_armor
 
     for i = 1, #thresholds do
         if health_percentage < thresholds[i] then
+
             resistance = resistance - resistance_decrease * i
             break -- Exit the loop once the condition is met
         end
@@ -880,35 +881,3 @@ function SuppressionMeter:GetEffectiveSuppression(distance)
 
     return result
 end
-
--- function exponentialDecay(initial, decayRate, distance)
---     if decayRate < 0 or decayRate >= 1 then
---         return "Invalid decay rate. It should be in the range [0, 1)."
---     end
-
---     local result = initial
---     local decayValues = { result }
-
---     for d = 1, distance do
---         result = result * (1 - decayRate)
---         table.insert(decayValues, result)
---     end
-
---     return decayValues
--- end
-
--- function testDecay()
---     -- Example usage:
---     local initial = 100    -- Initial value
---     local decayRate = 0.001 -- Decay rate (5% decay per unit of distance)
---     local distance = 100   -- Distance over which to calculate the decayed values
-
---     local decayedValues = exponentialDecay(initial, decayRate, distance)
-
---     -- Display the values from 0 to 100 distance
---     print("Distance | Decay Value")
---     print("---------|-------------")
---     for d = 0, distance do
---         print(string.format("%8d | %11.2f", d, decayedValues[d + 1]))
---     end
--- end

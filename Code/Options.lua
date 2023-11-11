@@ -9,6 +9,7 @@ function SuppressedGetModOptions(id, default, type)
 end
 
 function OnMsg.ApplyModOptions(mod_id)
+
 	if CurrentModOptions then
 		for k, v in pairs(CurrentModOptions) do
 			if string.starts_with(k, "suppressed_") then
