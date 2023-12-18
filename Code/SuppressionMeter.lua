@@ -1,4 +1,8 @@
 function OnMsg.DamageDone(attacker, target, dmg, hit_descr)
+    if not attacker or not target then
+        return
+    end
+
     local weapon = attacker:GetActiveWeapons()
 
     if IsKindOf(weapon, "Mortar") then
@@ -16,11 +20,6 @@ end
 
 function OnMsg.CombatEnd()
     SuppressionMeter:RemoveSuppression()
-end
-
-function OnMsg.InterruptAttackEnd()
-    SuppressionMeter:DoSuppression(g_CurrentAttackActions[1].action, g_CurrentAttackActions[1].results,
-        g_CurrentAttackActions[1].attack_args)
 end
 
 function OnMsg.OnAttack(attacker, action, target, results, attack_args)
@@ -54,7 +53,7 @@ function SuppressionMeter:UpdateProps(prop_name, value)
     local property_name = prop_name:gsub("suppressed", ""):gsub("_%l", string.upper):gsub("^%l", string.upper):gsub("_",
         "")
 
-    self[property_name] = tonumber(value)
+    self[property_name] = value and tonumber(value) or 100
 end
 
 function SuppressionMeter:HandleVanillaSuppression(unit)
@@ -111,7 +110,8 @@ function SuppressionMeter:ResetTeamSuppression(team, forced)
             if forced then
                 unit.suppression_meter = 0
             else
-                unit.suppression_meter = Min(Max((unit.suppression_meter or 0) - Max( 10,(unit.suppression_resistance * 3)), 0), 200)
+                unit.suppression_meter = Min(
+                    Max((unit.suppression_meter or 0) - Max(15, (unit.suppression_resistance * 3)), 0), 200)
             end
 
             self:ApplySuppressionStatus(unit)
@@ -382,7 +382,6 @@ function SuppressionMeter:CalculateSuppressionResistance(target, test, not_armor
 
     for i = 1, #thresholds do
         if health_percentage < thresholds[i] then
-
             resistance = resistance - resistance_decrease * i
             break -- Exit the loop once the condition is met
         end
@@ -754,7 +753,6 @@ function SuppressionMeter:GetCloseUnits(target, attacker)
 end
 
 function SuppressionMeter:CheckIfSameSide(attacker, target)
-
     if not target or not attacker then
         return false
     end
