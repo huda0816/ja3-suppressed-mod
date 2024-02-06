@@ -430,4 +430,15 @@ return {
 			"200",
 		},
 	}),
+	PlaceObj('ModItemOptionChoice', {
+		'name', "suppressed_consumed_aps_log_level",
+		'DisplayName', "AP loss log level",
+		'Help', "Use short or important to see how much AP is lossed due to suppression",
+		'DefaultValue', "debug (visible only in debug mode)",
+		'ChoiceList', {
+			"debug (visible only in debug mode)",
+			"short (visible in Snype)",
+			"important (visible on screen and in Snype)",
+		},
+	}),
 }
