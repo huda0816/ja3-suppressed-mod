@@ -1,3 +1,9 @@
+AppendClass.InventoryItem = {
+	properties = {
+		{ category = "General", template = true, id = "SuppressionValue", name = "Suppression value", editor = "number", default = 0, min = 0, max = 1000, slider = true, help = "Suppression value for this weapon." },
+	}
+}
+
 -- If your mod loads after this one you can override the values below.
 -- If you add your own WeaponGroup or Combataction it is also possible to add a suppression value for it.
 -- WeaponGroup: SuppressionValue
@@ -6,13 +12,13 @@
 SUPPWeaponSuppressionValues = {
     Unarmed = 0,
     MeleeWeapon = 0,
-    AssaultRifle = 5,
-    SubmachineGun = 4,
-    Pistol = 4,
-    Revolver = 4,
-    Shotgun = 6,
+    AssaultRifle = 6,
+    SubmachineGun = 5,
+    Pistol = 5,
+    Revolver = 5,
+    Shotgun = 7,
     SniperRifle = 14,
-    MachineGun = 5,
+    MachineGun = 6,
     HeavyWeapon = 0,
     Grenade = 0,
     ConcussiveGrenade = 5,
@@ -53,7 +59,7 @@ SUPPCombatActionSuppressionBonus = {
     Brutalize = 0,
     Charge = 0,
     RecklessAssault = 0,
-    BurstFire = 4,
+    BurstFire = 6,
     BulletHell = 6,
     AutoFire = 6,
     Buckshot = 10,
@@ -62,7 +68,7 @@ SUPPCombatActionSuppressionBonus = {
     ThrowGrenadeA = 0,
     ThrowGrenadeB = 0,
     DoubleTossB = 0,
-    MGBurstFire = 8,
+    MGBurstFire = 10,
     RocketLauncherFire = 0,
     GrenadeLauncherFire = 0,
 }
