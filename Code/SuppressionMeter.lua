@@ -360,6 +360,10 @@ function SuppressionMeter:CalculateSuppressionResistance(target, test, not_armor
 		return 100
 	end
 
+	if target.species ~= "Human" then
+		return 80
+	end
+
 	local morale = target:GetPersonalMorale()
 
 	local resistance = Min(target:GetLevel() * 5, 50)
@@ -438,7 +442,7 @@ function SuppressionMeter:ApplySuppression(obj, added_supp, attacker)
 	end
 
 	if self:CheckIfSameSide(obj, attacker) then
-		suppression_resistance = suppression_resistance + 40
+		suppression_resistance = suppression_resistance + 50
 	end
 
 	-- add 20% suppression resistance if not in combat as he cannot fear what he cannot see
